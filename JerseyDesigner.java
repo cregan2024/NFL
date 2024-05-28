@@ -1,6 +1,8 @@
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
+import java.io.*;
+import java.util.ArrayList;
 
 public class JerseyDesigner extends JFrame implements ActionListener {
     private Container c;
@@ -14,10 +16,12 @@ public class JerseyDesigner extends JFrame implements ActionListener {
     private JLabel typeLabel;
     private JComboBox<String> typeDropdown;
     private JButton submitButton;
+    private JButton readCSVButton;
     private JTextArea resultArea;
 
     private String[] jerseyTypes = {"Home", "Away", "Alternate"};
     private String[] nflTeams = {"Arizona Cardinals", "Atlanta Falcons", "Baltimore Ravens", "Buffalo Bills", "Carolina Panthers", "Chicago Bears", "Cincinnati Bengals", "Cleveland Browns", "Dallas Cowboys", "Denver Broncos", "Detroit Lions", "Green Bay Packers", "Houston Texans", "Indianapolis Colts", "Jacksonville Jaguars", "Kansas City Chiefs", "Las Vegas Raiders", "Los Angeles Chargers", "Los Angeles Rams", "Miami Dolphins", "Minnesota Vikings", "New England Patriots", "New Orleans Saints", "New York Giants", "New York Jets", "Philadelphia Eagles", "Pittsburgh Steelers", "San Francisco 49ers", "Seattle Seahawks", "Tampa Bay Buccaneers", "Tennessee Titans", "Washington Football Team"};
+    private File dataFile;
 
     public JerseyDesigner() {
         setTitle("Jersey Designer");
@@ -85,9 +89,16 @@ public class JerseyDesigner extends JFrame implements ActionListener {
         submitButton = new JButton("Submit");
         submitButton.setFont(new Font("Arial", Font.PLAIN, 15));
         submitButton.setSize(100, 20);
-        submitButton.setLocation(250, 300);
+        submitButton.setLocation(150, 300);
         submitButton.addActionListener(this);
         c.add(submitButton);
+
+        readCSVButton = new JButton("Read CSV");
+        readCSVButton.setFont(new Font("Arial", Font.PLAIN, 15));
+        readCSVButton.setSize(100, 20);
+        readCSVButton.setLocation(350, 300);
+        readCSVButton.addActionListener(this);
+        c.add(readCSVButton);
 
         resultArea = new JTextArea();
         resultArea.setFont(new Font("Arial", Font.PLAIN, 15));
@@ -97,7 +108,34 @@ public class JerseyDesigner extends JFrame implements ActionListener {
         resultArea.setEditable(false);
         c.add(resultArea);
 
+        // Create or load data file
+        dataFile = new File("jersey_data.csv");
+
         setVisible(true);
+    }
+    //making the interface
+
+    // Save entered data to file
+    private void saveData(String data) {
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(dataFile, true))) {
+            writer.write(data + "\n");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    // Read data from CSV file and display in the result area
+    private void readDataFromCSV() {
+        try (BufferedReader reader = new BufferedReader(new FileReader(dataFile))) {
+            String line;
+            StringBuilder data = new StringBuilder();
+            while ((line = reader.readLine()) != null) {
+                data.append(line).append("\n");
+            }
+            resultArea.setText(data.toString());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     public void actionPerformed(ActionEvent e) {
@@ -107,10 +145,17 @@ public class JerseyDesigner extends JFrame implements ActionListener {
             String team = (String) teamDropdown.getSelectedItem();
             String type = (String) typeDropdown.getSelectedItem();
 
-            String result = "Name: " + name + "\nNumber: " + number + "\nTeam: " + team + "\nType: " + type;
-            resultArea.setText(result);
+            String result = name + "," + number + "," + team + "," + type;
+            resultArea.setText("Name: " + name + "\nNumber: " + number + "\nTeam: " + team + "\nType: " + type);
+
+            // Save entered data
+            saveData(result);
+        } else if (e.getSource() == readCSVButton) {
+            // Read data from CSV
+            readDataFromCSV();
         }
     }
+    //all the csv action, prints out data from csv when it hits read csv
 
     public static void main(String[] args) {
         new JerseyDesigner();
